@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="ajaxCalls.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Responsive Admin Dashboard Template">
+    <meta name="keywords" content="admin,dashboard">
+    <meta name="author" content="stacks">
+    <!-- The above 6 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Title -->
+    <title>Connect - Responsive Admin Dashboard Template</title>
+
+    <!-- Styles -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <link href="../../assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/DataTables/datatables.min.css" rel="stylesheet">
+
+
+    <!-- Theme Styles -->
+    <link href="../../assets/css/connect.min.css" rel="stylesheet">
+    <link href="../../assets/css/dark_theme.css" rel="stylesheet">
+    <link href="../../assets/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script>
+        const storedData = localStorage.getItem('user');
+        const myData = JSON.parse(storedData);
+        function init() {
+            const storedData = localStorage.getItem('user');
+            const myData = JSON.parse(storedData);
+            str3 = "שלום ל" + myData.firstname + " " + myData.lastname;
+            document.getElementById("namee").innerHTML = str3;
+            const api = "https://proj.ruppin.ac.il/cgroup30/prod/api/HairSalon/GetHairSalonWorkTime?hairSalonId=" + myData.idd;
+            console.log('dddd');
+            ajaxCall("GET", api, "", succCB, errCB);
+
+        }
+        function succCB(data) {
+            var res = $(innerH(data));
+            $('#zero-conf').DataTable();
+        }
+        function innerH(data) {
+            workTime = data;
+            console.log(workTime);
+            str = "";
+            str += `<thead>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">יום</th>`;
+            str += ` <th style="text-align:right">מ - שעה</th>`;
+            str += ` <th style="text-align:right">עד - שעה</th>`;
+            str += `<th></th>`;
+            str += `</tr>`;
+
+            str += `</thead>`;
+            str += `<tbody>`;
+
+
+
+            for (var i = 0; i < workTime.length; i++) {
+                if (workTime[i].day == "1")
+                    day = "ראשון";
+                if (workTime[i].day == "2")
+                    day = "שני";
+                if (workTime[i].day == "4")
+                    day = "רביעי";
+                if (workTime[i].day == "5")
+                    day = "חמישי";
+                if (workTime[i].day == "6")
+                    day = "שישי";
+                str += `<tr>`;
+                str += `<td style="text-align:right">${day}</td>`;
+                from = workTime[i].fromHour;
+                newF = from.substring(0, 5);
+                str += `<td style="text-align:right">${newF}</td>`;
+                to = workTime[i].toHour;
+                newT = to.substring(0, 5);
+                str += `<td style="text-align:right">${newT}</td>`;
+                str += `<td><button type="button" style="background:#2B598F" class="btn btn-primary m-b-md" onclick="modalUpdateWT('${day}','${newF}','${newT}')" >עדכן</button></td>`;
+
+                str += `</tr>`;
+            }
+
+
+            str += `</tbody>`;
+            str += `<tfoot>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">יום</th>`;
+            str += ` <th style="text-align:right">מ - שעה</th>`;
+            str += ` <th style="text-align:right">עד - שעה</th>`;
+            str += `<th></th>`;
+            str += `</tr>`;
+            str += `</tfoot>`;
+
+            document.getElementById("zero-conf").innerHTML = str;
+            return true;
+        }
+        function errCB(err) {
+            console.log(err)
+        }
+        function modalUpdateWT(day, newF, newT) {
+
+
+            str = `<div id="myModal" class="modal-background">
+
+                                            <!-- Modal content -->
+                                            <div id="modalsP" class="modal-container">
+                                                <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                                 <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F"  class="logo-text">זמן פעילות של ${day} </a></div>
+                                                <div><form id="formUE" style="direction:rtl">
+
+                                                <br><br>
+                                                <label for="fname">יום</label>
+                                                <input type="text" id="Uday" name="fname" class="form-control"  value="${day}" readonly><br>
+                                                <label for="fname">שעת פתיחה</label>
+                                                <input type="time"  id="UnewF" name="fname" class="form-control"  value="${newF}"><br>
+                                                <label for="price">שעת סגירה</label>
+                                                <input type="time"  id="UnewT" name="fname" class="form-control"  value="${newT}">
+                                                <br>
+                                                <div class="modal-buttons">
+                                                    <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F" onclick="closeModal()">ביטול</button>
+                                                    <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F" type="submit">אישור</button>
+                                                </div>
+                                            </form></div>
+
+                                            </div>
+
+                                        </div>`;
+
+            document.getElementById("mod").innerHTML = str;
+            $("#formUE").submit(update);
+            openModal();
+
+        }
+        function errGetByUCB(arr) {
+            console.log(arr);
+        }
+        function update() {
+            updateT();
+            return false;
+        }
+        function updateT() {
+            day = document.getElementById("Uday").value
+            if (day == "שישי") {
+                Nday = "6";
+            }
+            if (day == "ראשון") {
+                Nday = "1";
+            }
+            if (day == "שני") {
+                Nday = "3";
+            }
+            if (day == "רביעי") {
+                Nday = "4";
+            }
+            if (day == "חמישי") {
+                Nday = "5";
+            }
+            open = document.getElementById("UnewF").value;
+            close = document.getElementById("UnewT").value;
+            uapi = "https://proj.ruppin.ac.il/cgroup30/prod/api/HairSalon/PostWorkTime?hairSalonId=" + Nday + "&fromHour=" + open + "&toHour=" + close + "&day="+Nday;
+
+            ajaxCall("POST", uapi, "", succuCB, erruCB);
+            closeModal();
+        }
+        function succuCB(data) {
+            console.log(data);
+            location.reload();
+        }
+        function erruCB(err) {
+            console.log(err);
+
+        }
+        function openModal() {
+            var modal = document.getElementById("myModal");
+            st = document.getElementById("imageUpload");
+            modal.style.display = "block";
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+        }
+        function logout() {
+            window.location.replace('sign-in.html');
+            localStorage.clear();
+        }
+    </script>
+</head>
+<body onload="init()">
+
+    <div class='loader'>
+        <div class='spinner-grow text-primary' role='status'>
+            <span class='sr-only'>Loading...</span>
+        </div>
+    </div>
+    <div class="connect-container align-content-stretch d-flex flex-wrap">
+        <div class="page-sidebar">
+            <div class="logo-box"><a href="#" onclick="logout()" style="color:#2B598F" class="logo-text">התנתק</a><a href="#" id="sidebar-close"><i class="material-icons">close</i></a> <a href="#" id="sidebar-state"><i class="material-icons compact-sidebar-icon">panorama_fish_eye</i></a></div>
+            <div class="page-sidebar-inner slimscroll">
+                <ul class="accordion-menu">
+
+                    <li>
+                        <a style="font-size:15px" href="calendar.html" class="active"><i class="material-icons-outlined">people_outline</i>תורים</a>
+                    </li>
+                    <br>
+                    
+
+                    <li>
+                        <a style="font-size:15px" href="Employees.html"><i class="material-icons">people_outline</i>עובדים</a>
+                    </li>
+                    <br>
+                    
+                    <li>
+                        <a style="font-size:15px" href="product.html"><i class="material-icons-outlined">shopping_cart</i>מוצרים</a>
+                    </li>
+                    <br>
+                    <li>
+                        <a style="font-size:15px" href="DyeHair.html"><i class="material-icons">format_color_fill</i>צבעי שיער</a>
+                    </li>
+                    <br>
+                    <li>
+                        <a style="font-size:15px" href="services.html"><i class="material-icons-outlined">volunteer_activism</i>טיפולי שיער</a>
+                    </li>
+                    <br>
+                    
+                    <li>
+                        <a href="#" style="font-size:20px"><i class="material-icons">dehaze</i>פרטי מספרה<i class="material-icons has-sub-menu">add</i></a>
+                        <ul class="sub-menu">
+                            <li>
+                                <a href="Clients.html">לקוחות</a>
+                            </li>
+                            <li>
+                                <a href="EmployeeVacations.html">חופשות עובדים</a>
+                            </li>
+                            <li>
+                                <a href="barberWorkTime.html">זמני פעילות</a>
+                            </li>
+                           
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="page-container">
+            <div class="page-header">
+                <div style="text-align:center" class="logo-box"><a style="font-size:80px; color:#2B598F" class="logo-text">שעות עבודה בשבוע</a></div>
+                <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F" id="namee" class="logo-text"></a></div>
+            </div>
+            <div class="page-content">
+                <div class="page-info">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">פרטי מספרה</li>
+                            <li class="breadcrumb-item active" aria-current="page">לקוחות</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="main-wrapper">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="page-title">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+                                <div class="card-body">
+                                    <table id="zero-conf" class="display" style="width:100%; direction:rtl">
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+                                <div id="mod" style="direction:rtl">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-footer">
+                <div class="row">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascripts -->
+    <script src="../../assets/plugins/jquery/jquery-3.4.1.min.js"></script>
+    <script src="../../assets/plugins/bootstrap/popper.min.js"></script>
+    <script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../assets/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="../../assets/js/connect.min.js"></script>
+    <script src="../../assets/plugins/DataTables/datatables.min.js"></script>
+</body>
+</html>

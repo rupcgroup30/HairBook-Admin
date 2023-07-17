@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="ajaxCalls.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Responsive Admin Dashboard Template">
+    <meta name="keywords" content="admin,dashboard">
+    <meta name="author" content="stacks">
+    <!-- The above 6 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Title -->
+    <title>Connect - Responsive Admin Dashboard Template</title>
+
+    <!-- Styles -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <link href="../../assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/DataTables/datatables.min.css" rel="stylesheet">
+
+
+    <!-- Theme Styles -->
+    <link href="../../assets/css/connect.min.css" rel="stylesheet">
+    <link href="../../assets/css/dark_theme.css" rel="stylesheet">
+    <link href="../../assets/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script>
+        const storedData = localStorage.getItem('user');
+        const myData = JSON.parse(storedData);
+        function init(flag) {
+            const storedData = localStorage.getItem('user');
+            const myData = JSON.parse(storedData);
+            str3 = "שלום ל" + myData.firstname + " " + myData.lastname;
+            document.getElementById("namee").innerHTML = str3;
+            if (flag == false) {
+                
+                allVacations();
+            }
+            else {
+                const api = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/GetEmployeesVacations/" + myData.idd;
+                console.log('dddd');
+                ajaxCall("GET", api, "", succCB, errCB);
+            }
+            
+
+        }
+        function succCB(data) {
+            var res = $(innerH(data));
+            $('#zero-conf').DataTable();
+        }
+        function innerH(data) {
+            vacationE = data;
+            console.log(vacationE);
+            str = "";
+            str += `<thead>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">מספר פלאפון</th>`;
+            str += ` <th style="text-align:right">מ - תאריך</th>`;
+            str += ` <th style="text-align:right">עד - תאריך</th>`;
+
+            str += `</tr>`;
+
+            str += `</thead>`;
+            str += `<tbody>`;
+            future = [];
+            for (var i = 0; i < vacationE.length; i++) {
+                const currentDate = new Date().toISOString().substring(0, 10);
+                const year = parseInt(currentDate.substring(0, 4));
+                const month = parseInt(currentDate.substring(5, 7));
+                const day = parseInt(currentDate.substring(8, 10));
+                const dateParts = vacationE[i].startDate.split('T')[0].split('-');
+                const [yearE, monthE, dayE] = dateParts.map(Number);
+                if ((yearE >= year && monthE >= month && dayE >= day) || (monthE > month && yearE >= year)) {
+                    future.push(vacationE[i]);
+                }
+            }
+
+            for (var i = 0; i < future.length; i++) {
+
+                str += `<tr>`;
+                
+
+                str += `<td style="text-align:right">${future[i].phoneNum}</td>`;
+                newDate1 = future[i].startDate;
+                    const dateArray1 = newDate1.split('T')[0].split('-');
+                    const outputDate1 = `${dateArray1[2]}-${dateArray1[1]}-${dateArray1[0]}`;
+                    str += `<td style="text-align:right">${outputDate1}</td>`;
+                newDate2 = future[i].endDate;
+                    const dateArray2 = newDate2.split('T')[0].split('-');
+                    const outputDate2 = `${dateArray2[2]}-${dateArray2[1]}-${dateArray2[0]}`;
+                    str += `<td style="text-align:right">${outputDate2}</td>`;
+                
+               
+                str += `</tr>`;
+            }
+
+
+            str += `</tbody>`;
+            str += `<tfoot>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">מספר פלאפון</th>`;
+            str += ` <th style="text-align:right">מ - תאריך</th>`;
+            str += ` <th style="text-align:right">עד - תאריך</th>`;
+
+            str += `</tr>`;
+            str += `</tfoot>`;
+
+            document.getElementById("zero-conf").innerHTML = str;
+            return true;
+        }
+        function errCB(err) {
+            console.log(err)
+        }
+        /////////////////////////////////////////////////////////////////////////////////רנדור לאחר טעינת הדף
+        function allVacations() {
+            const api = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/GetEmployeesVacations/" + myData.idd;
+            console.log('dd');
+            ajaxCall("GET", api, "", succFSCB, errFECB);
+        }
+        function succFSCB(data) {
+            var res = $(innerHF(data));
+            $('#zero-conf2').DataTable();
+            
+        }
+                                    
+        function innerHF(data) {
+            vacationE = data;
+            console.log(vacationE);
+            str = `<div class="card-body" style="text-align:center" ><div>
+                     <button type="button" style="background:#2B598F" id="closeT" class="btn btn-primary m-b-md" onclick="closeTable()">סגור טבלת היסטוריית חופשים</button>
+                   </div>
+                   <div style="text-align:center" class="logo-box"><a id="history" style="font-size:80px; color:#2B598F" class="logo-text">היסטוריית חופשים</a></div>`;
+            str += `<table id="zero-conf2" class="display" style="width:100%; direction:rtl">`;
+            str += `<thead>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">מספר פלאפון</th>`;
+            str += ` <th style="text-align:right">מ - תאריך</th>`;
+            str += ` <th style="text-align:right">עד - תאריך</th>`;
+
+            str += `</tr>`;
+
+            str += `</thead>`;
+            str += `<tbody>`;
+            
+
+            for (var i = 0; i < vacationE.length; i++) {
+
+                str += `<tr>`;
+
+
+                str += `<td style="text-align:right">${vacationE[i].phoneNum}</td>`;
+                newDate1 = vacationE[i].startDate;
+                const dateArray1 = newDate1.split('T')[0].split('-');
+                const outputDate1 = `${dateArray1[2]}-${dateArray1[1]}-${dateArray1[0]}`;
+                str += `<td style="text-align:right">${outputDate1}</td>`;
+                newDate2 = vacationE[i].endDate;
+                const dateArray2 = newDate2.split('T')[0].split('-');
+                const outputDate2 = `${dateArray2[2]}-${dateArray2[1]}-${dateArray2[0]}`;
+                str += `<td style="text-align:right">${outputDate2}</td>`;
+
+
+                str += `</tr>`;
+            }
+
+
+            str += `</tbody>`;
+            str += `<tfoot>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">מספר פלאפון</th>`;
+            str += ` <th style="text-align:right">מ - תאריך</th>`;
+            str += ` <th style="text-align:right">עד - תאריך</th>`;
+
+            str += `</tr>`;
+            str += `</tfoot></table></div>`;
+            
+            
+            document.getElementById("ccc").innerHTML = str;
+            return true;
+        }
+        function errFECB(err) {
+            console.log(err)
+        }
+        function closeTable() {
+            
+            document.getElementById("ccc").innerHTML = "";
+            
+        }
+        /////////////////////////////////////////////////////////////////////////////////סיום רנדור הדף
+
+
+
+       
+        function openModalAdd() {
+
+            str = `<div id="myModal" class="modal-background">
+
+                                        <!-- Modal content -->
+                                        <div id="modalsP" class="modal-container">
+                                            <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                            <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F""  class="logo-text">פרטי חופשה חדשה</a></div>
+                                            <div>
+                                            <form id="form" style="direction:rtl">
+
+                                           
+                                                <label for="pName">הכנס מספר פלאפון</label>
+                                                <input type="text" class="form-control" id="phoneV"  placeholder="מספר פלאפון"  required>
+                                            
+                                            
+                                                <label for="desc">הכנס תאריך התחלה</label>
+                                                <input type="date" class="form-control" id="Sdate"  placeholder="תאריך התחלה"  required>
+                                            
+                                            
+                                                <label for="price">הכנס תאריך סיום</label>
+                                                <input type="date"  class="form-control" id="Edate"  placeholder="תאריך סיום"  required>
+                                            
+                                            
+                                                
+                                            
+                                            
+                                               <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F" onclick="closeModal()">ביטול</button>
+                                                   <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F"  type="submit" >אישור</button>
+                                            
+
+                                        </form>
+                                        </div>
+
+                                        </div>
+
+                                    </div>`;
+
+            document.getElementById("mod").innerHTML = str;
+            $("#form").submit(addV);
+
+            openModal();
+        }
+        function addV() {
+            addVV();
+            return false;
+        }
+        function addVV() {
+            const phoneNum = document.getElementById("phoneV").value;
+            const dateS = document.getElementById("Sdate").value +"T00:00:00";
+            const dateE = document.getElementById("Edate").value + "T00:00:00";
+            ap = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/InsertEmployeeVacation?hairSalonId=" + myData.idd + "&phoneNum=" + phoneNum + "&startDate=" + dateS + "&endDate=" + dateE + "&fromHour=10%3A00&toHour=19%3A00";
+            ajaxCall("POST", ap, "", emoVacationPostSCB, emoVacationPostECB);
+        }
+        function emoVacationPostSCB(data) {
+            console.log(data);
+            
+            location.reload();
+        }
+        function emoVacationPostECB(err) {
+            console.log(err);
+        }
+        function logout() {
+            window.location.replace('sign-in.html');
+            localStorage.clear();
+        }
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+
+        }
+    </script>
+</head>
+<body onload="init(true)">
+
+    <div class='loader'>
+        <div class='spinner-grow text-primary' role='status'>
+            <span class='sr-only'>Loading...</span>
+        </div>
+    </div>
+    <div class="connect-container align-content-stretch d-flex flex-wrap">
+        <div class="page-sidebar">
+            <div class="logo-box"><a href="#" onclick="logout()" class="logo-text" style="color:#2B598F">התנתק</a><a href="#" id="sidebar-close"><i class="material-icons">close</i></a> <a href="#" id="sidebar-state"><i class="material-icons compact-sidebar-icon">panorama_fish_eye</i></a></div>
+            <div class="page-sidebar-inner slimscroll">
+                <ul class="accordion-menu">
+
+                    <li>
+                        <a style="font-size:15px" href="calendar.html" class="active"><i class="material-icons-outlined">people_outline</i>תורים</a>
+                    </li>
+                    <br>
+                    
+
+                    <li>
+                        <a style="font-size:15px" href="Employees.html"><i class="material-icons">people_outline</i>עובדים</a>
+                    </li>
+                    <br>
+                    
+                    <li>
+                        <a style="font-size:15px" href="product.html"><i class="material-icons-outlined">shopping_cart</i>מוצרים</a>
+                    </li>
+                    <br>
+                    
+                    <li>
+                        <a style="font-size:15px" href="file-manager.html"><i class="material-icons">format_color_fill</i>צבעי שיער</a>
+                    </li>
+                    <br>
+                    
+                    <li>
+                        <a style="font-size:15px" href="services.html"><i class="material-icons-outlined">volunteer_activism</i>טיפולי שיער</a>
+                    </li>
+                    <br>
+                    
+                    <li>
+                        <a href="#" style="font-size:20px"><i class="material-icons">dehaze</i>פרטי מספרה<i class="material-icons has-sub-menu">add</i></a>
+                        <ul class="sub-menu">
+                            <li>
+                                <a href="Clients.html">לקוחות</a>
+                            </li>
+                            <li>
+                                <a href="EmployeeVacations.html">חופשות עובדים</a>
+                            </li>
+                            <li>
+                                <a href="barberWorkTime.html">זמני פעילות</a>
+                            </li>
+                            
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="page-container">
+            <div class="page-header">
+                <div style="text-align:center" class="logo-box"><a style="font-size:80px; color:#2B598F" class="logo-text">חופשות עובדים</a></div>
+                <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F" id="namee" class="logo-text"></a></div>
+            </div>
+            <div class="page-content">
+                <div class="page-info">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">פרטי מספרה</li>
+                            <li class="breadcrumb-item active" aria-current="page">חופשות עובדים</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="main-wrapper">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="page-title">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+                                <div class="card-body">
+                                    <button type="button" style="background:#2B598F" class="btn btn-primary m-b-md" onclick="init(false)">היסטוריית חופשות</button>
+                                    <button type="button" class="btn btn-primary m-b-md" id="addProduct" onclick="openModalAdd()" style="float: right; background: #2B598F ">הוספת חופשת עובד חדש</button>
+                                    <table id="zero-conf" class="display" style="width:100%; direction:rtl"></table>
+                                        
+                                        
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card" id="ccc">
+                                
+                                    
+                                   
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+                                <div id="mod" style="direction:rtl">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl">
+                            <div class="card">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-footer">
+                <div class="row">
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascripts -->
+    <script src="../../assets/plugins/jquery/jquery-3.4.1.min.js"></script>
+    <script src="../../assets/plugins/bootstrap/popper.min.js"></script>
+    <script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../assets/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="../../assets/js/connect.min.js"></script>
+    <script src="../../assets/plugins/DataTables/datatables.min.js"></script>
+</body>
+</html>

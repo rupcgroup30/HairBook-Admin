@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="ajaxCalls.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Responsive Admin Dashboard Template">
+    <meta name="keywords" content="admin,dashboard">
+    <meta name="author" content="stacks">
+    <!-- The above 6 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Title -->
+    <title>Admin</title>
+
+    <!-- Styles -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <link href="../../assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/font-awesome/css/all.min.css" rel="stylesheet">
+
+
+    <!-- Theme Styles -->
+    <link href="../../assets/css/connect.min.css" rel="stylesheet">
+    <link href="../../assets/css/dark_theme.css" rel="stylesheet">
+    <link href="../../assets/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            getBarbers();
+            $("#formSignIn").submit(checkUser);
+
+        })
+        function getBarbers() {
+            apiBarber = "https://proj.ruppin.ac.il/cgroup30/prod/api/HairSalon/GetAllHairSalons";
+            ajaxCall("GET", apiBarber, " ", barberSCB, barberECB);
+        }
+        function barberSCB(data) {
+            console.log(data);
+            barbers = data;
+            str = `<select id="bID" class="form-control custom-select"  requied>
+                   <option value="a">בחר...</option>`;
+            for (var i = 0; i < barbers.length; i++) {
+                str += `<option value=${i + 1}>${barbers[i].salonName}</option>`;   
+            }
+            str += `</select>`;
+            document.getElementById("barber").innerHTML += str;
+        }
+        function barberECB(err) {
+            console.log(err);
+        }
+
+        function checkUser() {
+            GetIn();
+            
+            return false;
+        }
+       
+        function GetIn() {
+
+            //NumPhone = document.getElementById("phoneNum").value;
+            //password = document.getElementById("pass").value;
+
+            //console.log(numBarber);
+            //window.href = "https://www.w3schools.com";
+           
+            numB = document.getElementsByName('exampleRadios');
+            BarberId = document.getElementById("bID").value;
+            api = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/GetAllEmployees?hairSalonId=" + BarberId;
+            ajaxCall("GET", api, " ", succCB, errCB);
+
+        }
+
+        function succCB(data) {
+           
+            console.log(data);
+            employee = data;
+            NumPhone = document.getElementById("phoneNum").value;
+            password = document.getElementById("pass").value;
+            for (var i = 0; i < employee.length; i++) {
+                if (NumPhone == employee[i].phoneNum && password == employee[i].password) {
+                    if (employee[i].empolyeeType == 'Manager' || employee[i].empolyeeType == 'מנהל') {
+                        
+                        const user = { firstname: employee[i].firstName, lastname: employee[i].lastName, idd: BarberId };
+                        localStorage.setItem('user', JSON.stringify(user));
+                        window.location.href = "calendar.html";
+                        return false;
+                    }
+                    if (employee[i].empolyeeType == 'עובד' || employee[i].empolyeeType == 'employee') {
+                        const user = { firstname: employee[i].firstName, lastname: employee[i].lastName, idd: BarberId };
+                        localStorage.setItem('user', JSON.stringify(user));
+                        window.location.href = "calendarEMP.html";
+                        return false;
+                    }
+                } 
+            }
+            str = `<div id="myModal" class="modal-background">
+
+                                        <!-- Modal content -->
+                                        <div id="modalsP" class="modal-container">
+                                            <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                            <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F" class="logo-text">מצטערים, משתמש לא קיים</a></div>
+                                            <div style="text-align:center">
+                                            <img style="height:200px; width:200px" src="x.png" />
+                                            </div>
+                                            </div>
+
+                                    </div>`;
+            document.getElementById("mod").innerHTML = str;
+
+            openModal();
+            
+            return false;
+           
+        }
+        function errCB(err) {
+            console.log(err);
+        }
+        function openModal() {
+            var modal = document.getElementById("myModal");
+
+            modal.style.display = "block";
+        }
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+
+        }
+    </script>
+</head>
+    <body class="auth-page sign-in">
+        
+        <div class='loader'>
+            <div class='spinner-grow text-primary' role='status'>
+                <span class='sr-only'>Loading...</span>
+            </div>
+        </div>
+        <div class="connect-container align-content-stretch d-flex flex-wrap">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="auth-form">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="logo-box"><a  class="logo-text" style="font-size: 50px; color: #2B598F">התחברות</a></div>
+                                    <form id="formSignIn" style="direction:rtl" >
+                                        <div class="form-group">
+                                            <input type="number" style="-moz-appearance: textfield" class="form-control" id="phoneNum" aria-describedby="emailHelp" placeholder="מספר פלאפון" title="please insert password" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" class="form-control" id="pass" placeholder="סיסמא" title="הכנס סיסמא נכונה" required>
+                                        </div>
+                                        <div class="form-group" id="barber">
+                                            <div style="text-align:center" class="logo-box"><a style="font-size: 20px; color: #2B598F" class="logo-text">בחר מספרה</a></div>
+                                           
+                                        </div>
+                                        <button type="submit" id="subb" style="font-size: 25px; background: #2B598F"  class="btn btn-primary btn-block btn-submit">התחבר</button>
+                                        <div class="auth-options">
+                                            
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 d-none d-lg-block d-xl-block">
+                        <div class="auth-image"></div>
+                    </div>
+                    <div id="mod" style="direction:rtl">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Javascripts -->
+        <script src="../../assets/plugins/jquery/jquery-3.4.1.min.js"></script>
+        <script src="../../assets/plugins/bootstrap/popper.min.js"></script>
+        <script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+        <script src="../../assets/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+        <script src="../../assets/js/connect.min.js"></script>
+    </body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="ajaxCalls.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Responsive Admin Dashboard Template">
+    <meta name="keywords" content="admin,dashboard">
+    <meta name="author" content="stacks">
+    <!-- The above 6 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Title -->
+    <title>Connect - Responsive Admin Dashboard Template</title>
+
+    <!-- Styles -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <link href="../../assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/DataTables/datatables.min.css" rel="stylesheet">
+
+
+    <!-- Theme Styles -->
+    <link href="../../assets/css/connect.min.css" rel="stylesheet">
+    <link href="../../assets/css/dark_theme.css" rel="stylesheet">
+    <link href="../../assets/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+    <script>
+
+        
+        const storedData = localStorage.getItem('user');
+        const myData = JSON.parse(storedData);
+        var services1 = [];
+        
+        function init() {
+            const storedData = localStorage.getItem('user');
+            const myData = JSON.parse(storedData);
+            str3 = "שלום ל" + myData.firstname + " " + myData.lastname;
+            document.getElementById("namee").innerHTML = str3;
+            const api = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/GetAllEmployees?hairSalonId=" + myData.idd;
+            ajaxCall("GET", api, "", succCB, errCB);
+            const apiS = "https://proj.ruppin.ac.il/cgroup30/prod/api/Service?hairSalonId=" + myData.idd;
+            ajaxCall("GET", apiS, "", succSSCB, errSSCB);
+        }
+        function succSSCB(data) {
+            services1 = data;
+            console.log(data);
+        }
+        function errSSCB(err) {
+            console.log(err);
+        } 
+        function succCB(data) {
+            var res = $(succCBInner(data));
+            $('#zero-conf').DataTable();
+        }
+        
+        function succCBInner(data) {
+
+            employee = data;
+            console.log(employee);
+           
+            str = `<thead>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">מספר עובד</th>`;
+            str += ` <th style="text-align:right">שם פרטי</th>`;
+            str += ` <th style="text-align:right">שם משפחה</th>`;
+            str += ` <th style="text-align:right">מספר פלאפון</th>`;
+            str += ` <th style="text-align:right">סיסמה</th>`;
+            str += ` <th style="text-align:right">תמונה</th>`;
+            str += ` <th style="text-align:right">דירוג</th>`;
+            str += ` <th style="text-align:right">סוג עובד</th>`;
+            str += ` <th style="text-align:right">תאריך תחילת עבודה</th>`;
+            str += `<th></th>`;
+            str += `</tr>`;
+            str += `</thead>`;
+            str += `<tbody>`;
+
+            for (var i = 0; i < employee.length; i++) {
+                if (employee[i].isActive == true) {
+                    str += `<tr>`;
+                    str += `<td style="text-align:right">${employee[i].employeeNum}</td>`;
+                    str += `<td style="text-align:right">${employee[i].firstName}</td>`;
+                    str += `<td style="text-align:right">${employee[i].lastName}</td>`;
+                    str += `<td style="text-align:right">${employee[i].phoneNum}</td>`;
+                    str += `<td style="text-align:right">${employee[i].password}</td>`;
+                    str += `<td style="text-align:right"><img src=${employee[i].image}  width="40" height="60"></td>`;
+                    str += `<td style="text-align:right">${employee[i].rank}</td>`;
+                    str += `<td style="text-align:right">${employee[i].empolyeeType}</td>`;
+                    newDate = employee[i].startDate;
+                    const dateArray = newDate.split('T')[0].split('-');
+                    const outputDate = `${dateArray[2]}-${dateArray[1]}-${dateArray[0]}`;
+                    str += `<td style="text-align:right ">${outputDate}</td>`;
+                    str += `<td><button type="button" style="background:#2B598F" class="btn btn-primary m-b-md" onclick="modalUpdateEmployee('${employee[i].password}','${employee[i].phoneNum}')">עדכן</button></td>`;
+                    str += `</tr>`;
+                }
+
+            }
+
+            str += `</tbody>`;
+            str += `<tfoot>`;
+            str += `<tr>`;
+            str += ` <th style="text-align:right">מספר עובד</th>`;
+            str += ` <th style="text-align:right">שם פרטי</th>`;
+            str += ` <th style="text-align:right">שם משפחה</th>`;
+            str += ` <th style="text-align:right">מספר פלאפון</th>`;
+            str += ` <th style="text-align:right">סיסמה</th>`;
+            str += ` <th style="text-align:right">תמונה</th>`;
+            str += ` <th style="text-align:right">דירוג</th>`;
+            str += ` <th style="text-align:right">סוג עובד</th>`;
+            str += ` <th style="text-align:right">תאריך תחילת עבודה</th>`;
+            str += ` <th></th>`;
+            str += `</tr>`;
+            str += `</tfoot>`;
+
+            document.getElementById("zero-conf").innerHTML = str;
+
+            return true;
+        }
+        function errCB(err) {
+            console.log(err)
+        }
+        function notActive() {
+            const api = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/GetAllEmployees?hairSalonId=" + myData.idd;
+            ajaxCall("GET", api, "", succNCB, errNCB);
+        }
+        function succNCB(data) {
+            var res = $(InnerNotActive(data));
+            $('#zero-conf2').DataTable();
+        }
+        function errNCB(err) {
+            console.log(err);
+        }
+        function InnerNotActive() {
+            str2 = `<div class="card-body" style="text-align:center" >
+                   <div>
+                     <button type="button" style="background:#2B598F" id="closeT" class="btn btn-primary m-b-md" onclick="closeTable()">סגור טבלת עובדים לא פעילים</button>
+                   </div>
+                   <div style="text-align:center" class="logo-box"><a id="history" style="font-size:80px; color:#2B598F" class="logo-text">עובדים לא פעילים</a></div>`;
+            str2 += `<table id="zero-conf2" class="display" style="width:100%; direction:rtl">`;
+            str2 += `<thead>`;
+            str2 += ` <th style="text-align:right">מספר עובד</th>`;
+            str2 += ` <th style="text-align:right">שם פרטי</th>`;
+            str2 += ` <th style="text-align:right">שם משפחה</th>`;
+            str2 += ` <th style="text-align:right">מספר פלאפון</th>`;
+            str2 += ` <th style="text-align:right">סיסמה</th>`;
+            str2 += ` <th style="text-align:right">תמונה</th>`;
+            str2 += ` <th style="text-align:right">דירוג</th>`;
+            str2 += ` <th style="text-align:right">סוג עובד</th>`;
+            str2 += ` <th style="text-align:right">תאריך תחילת עבודה</th>`;
+
+            str2 += `</thead>`;
+            str2 += `<tbody>`;
+            for (var i = 0; i < employee.length; i++) {
+                if (employee[i].isActive == false) {
+                    str2 += `<tr>`;
+                    str2 += `<td style="text-align:right">${employee[i].employeeNum}</td>`;
+                    str2 += `<td style="text-align:right">${employee[i].firstName}</td>`;
+                    str2 += `<td style="text-align:right">${employee[i].lastName}</td>`;
+                    str2 += `<td style="text-align:right">${employee[i].phoneNum}</td>`;
+                    str2 += `<td style="text-align:right">${employee[i].password}</td>`;
+                    str2 += `<td style="text-align:right"><img src=${employee[i].image} width="50" height="60"></td>`;
+                    str2 += `<td style="text-align:right">${employee[i].rank}</td>`;
+                    str2 += `<td style="text-align:right">${employee[i].empolyeeType}</td>`;
+                    newDate = employee[i].startDate;
+                    const dateArray = newDate.split('T')[0].split('-');
+                    const outputDate = `${dateArray[2]}-${dateArray[1]}-${dateArray[0]}`;
+                    str2 += `<td style="text-align:right">${outputDate}</td>`;
+                    pass1 = employee[i].password
+                    str2 += `<td><button type="button" style="background:#2B598F" class="btn btn-primary m-b-md" onclick="modalUpdateEmployee('${employee[i].password}','${employee[i].phoneNum}')">עדכן</button></td>`;
+                    str2 += `</tr>`;
+                }
+
+            }
+            str2 += `</tbody></table>`;;
+            document.getElementById("ccc").innerHTML = str2;
+
+            return true;
+        }
+        //<div class="form-group">
+        //    <label for="imageUpload">הכנס תמונה</label>
+        //    <input type="image" src="" id="imageUpload" width="50" height="60">
+        //</div>
+        //////////////////////////////////////הוספת מוצר;
+        function openModalAdd() {
+
+            str = `<div id="myModal" class="modal-background">
+
+                                            <!-- Modal content -->
+                                            <div id="modalsP" class="modal-container ">
+                                                <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                                <div style="text-align:center"  class="logo-box" ><a style="font-size:40px; color:#2B598F" class="logo-text">פרטי עובד חדש</a></div>
+                                                <div>
+                                                <form id="form"  style="direction:rtl">
+                                                    <label for="lname">הכנס שם פרטי</label>
+                                                    <input type="text" class="form-control" id="fname"  placeholder="שם פרטי" title="הכנס שם פרטי" required>
+                                                     <br>
+                                                    <label for="lname">הכנס שם משפחה</label>
+                                                    <input type="text" class="form-control" id="lname"  placeholder="שם משפחה" title="הכנס שם משפחה" required>
+                                                     <br>
+                                                    <label for="phone">הכנס מספר פלאפון</label>
+                                                    <input type="number" step="any" class="form-control" id="phone"  placeholder="מספר פלאפון" title="הכנס מספר פלאפון" required>
+                                                     <br>
+                                                    <label for="pass">הכנס סיסמא</label>
+                                                    <input type="text" class="form-control" id="pass"  placeholder="סיסמא" title="הכנס סיסמא" required>
+                                                     <br>
+                                                    <label for="kindCare">הכנס תאריך תחילת עבודה</label>
+                                                    <input type="date" class="form-control" id="datee"  placeholder="תאריך תחילת עבודה"  required>
+                                                     <br>
+                                                    <label for="rank">הכנס דירוג של עובד</label>
+                                                    <input type="number" step="any" class="form-control" id="rank"   value="1" readonly>
+                                                     <br>
+                                                    <label for="img">הוסף תמונה URL</label>
+                                                    <input type="text" class="form-control" id="img"  placeholder="הוסף תמונה של עובד" required>
+                                                      <br>
+                                                     <div class="form-group col-md-4">
+                                                        <label for="inputState">בחר סוג טיפול לעובד</label>
+                                                       <select id="typeE" class="form-control custom-select" multiple required> `;
+                                                      for (var i = 0; i < services1.length; i++) {
+                                                           str += `<option value=${services1[i].treatmentNum}>${services1[i].treatmentType}</option>`;
+
+                                                         }
+        
+                                                         
+                                                 str += `</select>
+                                                         </div>
+                                                    
+                                                    <div class="form-group col-md-4">
+                                                        <label for="inputState">בחר סוג עובד</label>
+                                                        <select id="typeEE" class="form-control custom-select" requied>
+                                                            <option value="1">בחר...</option>
+                                                            <option value="מנהל">מנהל</option>
+                                                            <option value="עובד">עובד</option>"
+                                                        </select>
+                                                    </div>
+                                                    <div class="modal-buttons">
+                                                      <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F" onclick="closeModal()">ביטול</button>
+                                                      <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F"  type="submit" >אישור</button>
+                                                    </div>
+
+                                                    </form>
+                                                    </div>
+ 
+                                                    </div>
+
+                                                          </div>`; 
+
+            document.getElementById("mod").innerHTML = str;
+            $("#form").submit(addE);
+
+            openModal();
+        }
+        function addE() {
+            addEE();
+            return false;
+        }
+        function addEE() {
+            const Namef = document.getElementById("fname").value;
+            const namel = document.getElementById("lname").value;
+            const phonee = document.getElementById("phone").value;
+            const passs = document.getElementById("pass").value
+            const dateee = document.getElementById("datee").value;
+            const rankk = document.getElementById("rank").value;
+            const Urll = document.getElementById("img").value;
+            const typeEE = document.getElementById("typeEE").value;
+            const selectedValues = Array.from(document.querySelectorAll("#typeE option:checked"), option => option.value);
+            console.log(selectedValues);
+            AddTreatmentEMP(selectedValues, phonee);
+
+            const Employee = {
+                FirstName: Namef,
+                LastName: namel,
+                PhoneNum: phonee,
+                Password: passs,
+                StartDate: dateee,
+                Rank: rankk,
+                EmpolyeeType: typeEE,
+                Image: Urll,
+                EmployeeNum: 0,
+                IsActive: true
+            }
+            ap = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee?hairSalonId=" + myData.idd;
+            ajaxCall("POST", ap, JSON.stringify(Employee), empPostSCB, empPostECB);
+        }
+        function empPostSCB(data) {
+            console.log(data);
+            closeModal();
+            location.reload();
+        }
+        function empPostECB(err) {
+            console.log(err);
+        }
+
+        function succUCB(data) {
+            product = data;
+
+        }
+        function AddTreatmentEMP(data,numEMP) {
+            
+            console.log(data);
+            console.log(data);
+            console.log(numEMP);
+            console.log(data);
+            for (var i = 0; i < data.length; i++) {
+                data[i] = "'" + data[i] + "'";
+            }
+            console.log(data);
+            types = "[" + data + "]";
+            apiTYPEemp = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/SetEmpSpecialize?hairSalonId=" + myData.idd + "&phoneNum=" + numEMP + "&numOfCare=" + types;
+            ajaxCall("POST", apiTYPEemp,"", empPostTypeSCB, empPostTypeECB);
+        }
+        function empPostTypeSCB(data){
+            console.log(data);
+        }
+        function empPostTypeECB(err) {
+            console.log(err);
+        }
+        function closeTable() {
+
+            document.getElementById("ccc").innerHTML = "";
+
+        }
+      
+        /////////////////////////////////////עדכון מוצר
+        //function modalUpdateProduct(id) {
+        //    apU = "https://localhost:7276/api/Client/" + "0525530962";
+        //    ajaxCall("GET", apU, "", succGetByUCB, errGetByUCB);
+        //}
+        function modalUpdateEmployee(pass, phone) {
+
+
+            str = `<div id="myModal" class="modal-background">
+
+                                            <!-- Modal content -->
+                                            <div id="modalsP" class="modal-container">
+                                                <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                                <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F"  class="logo-text">עדכון פרטי עובד</a></div>
+                                                <div><form id="formUE" style="direction:rtl">
+                                                <br><br>
+                                                <label for="fname">מספר פלאפון</label>
+                                                <input type="text" id="UnumE" name="fname" class="form-control"  value="${phone}" readonly><br>
+                                                <label for="fname">עדכן סיסמא</label>
+                                                <input type="text" id="UpassE" name="fname" class="form-control"  value="${pass}"><br>
+                                                <label for="price">עדכן סוג עובד</label>
+                                                <select id="typeE" class="form-control custom-select"  requied>
+                                                            <option value="1"></option>
+                                                            <option value="מנהל">מנהל</option>
+                                                            <option value="עובד">עובד</option>"
+                                                        </select><br><br>
+                                                <label for="amount">האם פעיל?</label>
+                                                <select id="IA" class="form-control custom-select"  requied>
+                                                            <option value="1"></option>
+                                                            <option value="true">פעיל</option>
+                                                            <option value="false">לא פעיל</option>"
+                                                        </select><br><br>
+                                                <br><br>
+                                                <div class="modal-buttons">
+                                                    <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F" onclick="closeModal()">ביטול</button>
+                                                    <button class="btn btn-primary btn-block btn-submit" style="background: #2B598F" type="submit">אישור</button>
+                                                </div>
+                                            </form></div>
+
+                                            </div>
+
+                                        </div>`;
+
+            document.getElementById("mod").innerHTML = str;
+            $("#formUE").submit(update);
+            openModal();
+
+        }
+        function errGetByUCB(arr) {
+            console.log(arr);
+        }
+        function update() {
+            updateE();
+            return false;
+        }
+        function updateE() {
+            phone = document.getElementById("UnumE").value;
+            pass = document.getElementById("UpassE").value;
+            typE = document.getElementById("typeE").value;
+            active = document.getElementById("IA").value;
+            Eupdate = {
+                numPhone: phone,
+                password: pass,
+                employeeType: typE,
+                Active: active,
+                hairSalonId: myData.idd
+            }
+            uapi = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/UpdateEmployee?phoneNum=" + phone + "&password=" + pass + "&type=" + typE + "&isActive=" + active + "&hairSalonId=" + myData.idd;
+            /*uapi = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/UpdateEmployee?phoneNum=" + phone + "&password=" + pass + "&type=" + typE + "&isActive=" + active + "&hairSalonId=" + myData.idd;*/
+            ajaxCall("PUT", uapi, "", succuCB, erruCB);
+            /*closeModalU();*/
+        }
+        function succuCB(data) {
+            console.log(data);
+            location.reload();
+        }
+        function erruCB(err) {
+            console.log(err);
+
+        }
+        function openModal() {
+            var modal = document.getElementById("myModal");
+            st = document.getElementById("imageUpload");
+            modal.style.display = "block";
+        }
+        function closeModalU() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+            location.reload();
+        }
+        // Function to close the modal
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+        }
+        function logout() {
+            window.location.replace('sign-in.html');
+            localStorage.clear();
+        }
+    </script>
+</head>
+    <body onload="init()">
+        
+        <div class='loader'>
+            <div class='spinner-grow text-primary' role='status'>
+                <span class='sr-only'>Loading...</span>
+            </div>
+        </div>
+        <div class="connect-container align-content-stretch d-flex flex-wrap">
+            <div class="page-sidebar">
+                <div class="logo-box"><a href="#" onclick="logout()" class="logo-text" style="color:#2B598F">התנתק</a> </div>
+                <div class="page-sidebar-inner slimscroll">
+                    <ul class="accordion-menu">
+
+                        <li>
+                            <a style="font-size:15px" href="calendar.html" class="active"><i class="material-icons-outlined">people_outline</i>תורים</a>
+                        </li>
+                        <br>
+                        
+
+                        <li>
+                            <a style="font-size:15px" href="Employees.html"><i class="material-icons">people_outline</i>עובדים</a>
+                        </li>
+                        <br>
+                        
+                        <li>
+                            <a style="font-size:15px" href="product.html"><i class="material-icons-outlined">shopping_cart</i>מוצרים</a>
+                        </li>
+                        <br>
+                        
+                        <li>
+                            <a style="font-size:15px" href="DyeHair.html"><i class="material-icons">format_color_fill</i>צבעי שיער</a>
+                        </li>
+                        <br>
+                        
+                        <li>
+                            <a style="font-size:15px" href="services.html"><i class="material-icons-outlined">volunteer_activism</i>טיפולי שיער</a>
+                        </li>
+                        <br>
+                        
+                        <li>
+                            <a href="#" style="font-size:20px"><i class="material-icons">text_format</i>פרטי מספרה<i class="material-icons has-sub-menu">add</i></a>
+                            <ul class="sub-menu">
+                                <li>
+                                    <a href="Clients.html">לקוחות</a>
+                                </li>
+                                <li>
+                                    <a href="EmployeeVacations.html">חופשות עובדים</a>
+                                </li>
+                                <li>
+                                    <a href="barberWorkTime.html">זמני פעילות</a>
+                                </li>
+                               
+                            </ul>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="page-container">
+                <div class="page-header">
+                    <div style="text-align:center" class="logo-box"><a style="font-size:80px; color:#2B598F" class="logo-text">רשימת עובדים</a></div>
+                    <div style="text-align:center"  class="logo-box"><a style="font-size:40px; color:#2B598F" id="namee" class="logo-text"></a></div>
+                </div>
+                <div class="page-content">
+                    <div class="page-info">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">מספרה</li>
+                                <li class="breadcrumb-item active" aria-current="page">עובדים</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div class="main-wrapper">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="page-title">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-body" >
+                                        <button type="button" style="background:#2B598F" class="btn btn-primary m-b-md" onclick="notActive()">פתח טבלת עובדים לא פעילים</button>
+                                        <button type="button" class="btn btn-primary m-b-md" id="addProduct" onclick="openModalAdd()" style="float: right; background: #2B598F ">הוספת עובד חדש</button>
+                                        <table id="zero-conf" class="display" style="width:100%; direction:rtl">
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="card" style="text-align:center" id="ccc">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="card" style="text-align:center">
+                                    <div>
+                                        
+                                    </div>
+                                </div>     
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="card">
+                                    <div id="mod" style="direction:rtl" class="col-lg-12  .d-m-block">
+
+                                    </div>
+                                </div>      
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-footer">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <span class="footer-text">2019 © stacks</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Javascripts -->
+        <script src="../../assets/plugins/jquery/jquery-3.4.1.min.js"></script>
+        <script src="../../assets/plugins/bootstrap/popper.min.js"></script>
+        <script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+        <script src="../../assets/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+        <script src="../../assets/plugins/DataTables/datatables.min.js"></script>
+        <script src="../../assets/js/connect.min.js"></script>
+        <!--<script src="../../assets/js/pages/datatables.js"></script>-->
+    </body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="ajaxCalls.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Responsive Admin Dashboard Template">
+    <meta name="keywords" content="admin,dashboard">
+    <meta name="author" content="stacks">
+    <!-- The above 6 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Title -->
+    <title>Connect - Responsive Admin Dashboard Template</title>
+
+    <!-- Styles -->
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <link href="../../assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/font-awesome/css/all.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/fullcalendar/packages/core/main.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/fullcalendar/packages/daygrid/main.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/fullcalendar/packages/timegrid/main.min.css" rel="stylesheet">
+    <link href="../../assets/plugins/fullcalendar/packages/bootstrap//main.min.css" rel="stylesheet">
+
+
+    <!-- Theme Styles -->
+    <link href="../../assets/css/connect.min.css" rel="stylesheet">
+    <link href="../../assets/css/dark_theme.css" rel="stylesheet">
+    <link href="../../assets/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+ 
+    
+   
+    <script>
+        var calendar = undefined;
+        var allEvents = [];
+        const storedData = localStorage.getItem('user');
+        const myData = JSON.parse(storedData);
+        function init() {
+            str3 = "שלום ל" + myData.firstname + " " + myData.lastname;
+            document.getElementById("namee").innerHTML = str3;
+            getEmployee();
+            api = "https://proj.ruppin.ac.il/cgroup30/prod/api/Queue/GetAllQueues?hairSalonId=" + myData.idd + "&flag=" + 1;
+            ajaxCall("GET", api, "", queueSCB, queueECB);
+
+            
+        }
+        function setContextMenu(element) {
+            var contextMenu = $("#contextMenu")[0];
+
+            $(element).on("contextmenu", function (e) {
+                $(contextMenu).css({
+                    display: "block",
+                    left: e.pageX,
+                    top: e.pageY
+                });
+                
+                return false;
+            });
+
+            $('html').click(function () {
+                $(contextMenu).hide();
+            });
+
+            $("#contextMenu li a").click(function (e) {
+                var f = $(this);
+                alert(2);
+            });
+        }
+        function queueSCB(data) {
+            //console.log(data);
+
+            //// convert data from server to calendar event
+            var calendarEvents = convertToCalendarEvents(data);
+            allEvents = calendarEvents;
+            //// Render calendar
+            renderCalendar(calendarEvents);
+        }
+        function queueECB(err) {
+            console.log(err);
+        }
+       
+        function convertToCalendarEvents(data) {
+            var result = [];
+            console.log(data);
+            for (var i = 0; i < data.length; i++) {
+                let elem = data[i];
+                let start = getTimeFormatted(elem.date, elem.startTime);
+                let end = getTimeFormatted(elem.date, elem.endTime);
+                let item = {
+                    start: start,
+                    end: end,
+                    title: `${elem.kindCare} - ${elem.clientName}`,
+                    id: elem.employeeName,
+                    extendedProps: {
+                        numQueue: elem.numQueue,
+                        Stime: elem.startTime,
+                        datee: elem.date,
+                        phoneEmp: '0504483377',
+                        phoneClient: elem.clientPhoneNum,
+                        kindC: elem.kindCare
+
+                    }
+                }
+                result.push(item)
+            }
+            return result;
+        }
+        function getTimeFormatted(dateString, timeString) {
+            let parts = dateString.split('T');
+            let result = parts[0] + 'T' + timeString;
+            return result;
+        }
+        function renderCalendar(events) {
+            var calendarEl = document.getElementById('calendar');
+            $(calendarEl).empty();
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                plugins: ['interaction', 'dayGrid', 'timeGrid', 'bootstrap'],
+                timeZone: 'UTC',
+                header: {
+                    left: 'title',
+                    center: 'dayGridMonth,timeGridWeek,timeGridDay',
+                    right: 'prev,next today'
+                },
+                editable: false,
+                eventLimit: true, // when too many events in a day, show the popover
+                events: events,
+                themeSystem: 'bootstrap',
+                eventClick: function (info) {
+                    deleteQueueModal(info);
+
+                }
+                
+                
+            });
+
+            calendar.render();
+        }
+        function newQueuePostSCB(data) {
+            console.log(data);
+            complete = 2;
+            if (data == 0) { 
+            complete = 1;
+        }
+            if (complete == 2) {
+                str = `<div id="myModal" class="modal-background">
+
+                                        <!-- Modal content -->
+                                        <div id="modalsP" class="modal-container">
+                                            <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                            <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F" class="logo-text">התור עבר בהצלחה!</a></div>
+                                            <div style="text-align:center"> 
+                                            <img style="height:200px; width:200px" src="complete.jpg" />
+                                            </div>
+                                        </div>
+
+                                    </div>`;
+                document.getElementById("mod").innerHTML = str;
+
+                openModal();
+            }
+            if (complete == 1) {
+                str = `<div id="myModal" class="modal-background">
+
+                                        <!-- Modal content -->
+                                        <div id="modalsP" class="modal-container">
+                                            <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                            <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F" class="logo-text">מצטערים, אי אפשר לקבוע תור בשעה זו</a></div>
+                                            <div style="text-align:center">
+                                            <img style="height:200px; width:200px" src="x.png" />
+                                            </div>
+                                            </div>
+
+                                    </div>`;
+                document.getElementById("mod").innerHTML = str;
+
+                openModal();
+            }
+        }
+        function newQueuePostECB(err) {
+            console.log(err);
+            //if (!confirm("Are you sure about this change?")) {
+            //    info.revert();
+            //}
+        }
+        function deleteQueueModal(info) {
+            koteret = info.event.title;
+            split_string = koteret.split(' - ');
+            kindCare = split_string[0];
+            var newTitle = koteret.split(" - ")[1];
+            datee = info.event.extendedProps.datee.toString();
+            time = info.event.extendedProps.Stime.toString();
+            var dateParts = datee.split("T")[0].split("-");
+            var formattedDate = dateParts[2] + "-" + dateParts[1] + "-" + dateParts[0];
+            var timeParts = time.split(":");
+            var formattedTime = timeParts[0] + ":" + timeParts[1];
+            str = `<div id="myModal" class="modal-background">
+
+                                        <!-- Modal content -->
+                                        <div id="modalsP" class="modal-container">
+                                            <span class="modal-close" onclick="closeModal()">&times;</span> <!-- Close button -->
+                                            <div style="text-align:center" class="logo-box"><a style="font-size:40px; color:#2B598F" class="logo-text">פרטי תור</a></div>
+                                            <div>
+                                            <p class="logo-text" style="font-size:15px; color:#2B598F">לקוח:   ${newTitle}  </p>
+                                            <br>
+                                            <p class="logo-text" style="font-size:15px; color:#2B598F">שעת תור:   ${formattedTime}   </p>
+                                            <br>
+                                            <p class="logo-text" style="font-size:15px; color:#2B598F">סוג טיפול:   ${kindCare}   </p>
+                                            <br>
+                                            <p class="logo-text" style="font-size:15px; color:#2B598F">שם ספר:   ${info.event.id}  </p>
+                                            <br>
+                                            <p class="logo-text" style="font-size:15px; color:#2B598F">תאריך:   ${formattedDate}  </p>
+                                            <br>
+                                           </div>
+                                            
+
+                                        </div>
+
+                                    </div>`;
+            document.getElementById("mod").innerHTML = str;
+
+            openModal();
+
+        }
+        function deleteQueue(numQueue) {
+            apD = "https://proj.ruppin.ac.il/cgroup30/prod/api/Queue/DeleteQueue?queueNum=" + numQueue + "&hairSalonId=" + myData.idd;
+            ajaxCall("DELETE", apD, "", queueDSCB, queueDECB);
+        }
+        function queueDSCB(data) {
+            console.log(data);
+            closeModal();
+            location.reload();
+        }
+        function queueDECB(err) {
+            console.log(err);
+        } 
+        function logout() {
+            window.location.replace('sign-in.html');
+            localStorage.clear();
+        }
+        function getEmployee() {
+            const api = "https://proj.ruppin.ac.il/cgroup30/prod/api/Employee/GetAllEmployees?hairSalonId=" + myData.idd;
+            ajaxCall("GET", api, "", succCB, errCB);
+        }
+        function succCB(data) {
+            //console.log(data);
+            employees = data;
+            str = `<label for="amount" style="font-family: Lato,sans-serif">צפה בתורים של העובדים</label>
+                       <select id="empN" onchange="showQueueByEmp()" class="form-control custom-select" style="font-family: Lato,sans-serif; direction:rtl" ><option value="">כל העובדים</option>`;
+            for (var i = 0; i < employees.length; i++) {
+                if (employees[i].isActive == true) {
+                    str += `<option  value="${employees[i].firstName} ${employees[i].lastName}">${employees[i].firstName} ${employees[i].lastName}</option >`;
+                }
+            }
+            str += `</select>`;
+            document.getElementById("emp").innerHTML = str;
+        }
+        function errCB(err) {
+            console.log(err);
+        }
+        /////////show only queue by employee
+        function showQueueByEmp() {
+
+            if (calendar) {
+                var temp = calendar.getEvents();
+                console.log(temp);
+                var empName = document.getElementById("empN").value;
+                var filteredEvents = [];
+                if (empName == "") {
+                    for (var i = 0; i < allEvents.length; i++) {
+                        filteredEvents.push(allEvents[i]);
+                    }
+                }
+                else {
+                    console.log(empName);
+                    for (var i = 0; i < allEvents.length; i++) {
+                        let tempEvent = allEvents[i];
+                        if (tempEvent.id == empName) {
+                            filteredEvents.push(tempEvent);
+                        }
+                    }
+                }
+
+                renderCalendar(filteredEvents);
+            }
+
+        }
+       
+        
+                                    
+        function openModal() {
+            var modal = document.getElementById("myModal");
+            
+            modal.style.display = "block";
+        }
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+
+        }
+        // Function to close the modal
+        function closeModal() {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "none";
+
+        }
+
+       
+    </script>
+</head>
+<body onload="init()">
+
+    <div class='loader'>
+        <div class='spinner-grow text-primary' role='status'>
+            <span class='sr-only'>Loading...</span>
+        </div>
+    </div>
+    <div class="connect-container align-content-stretch d-flex flex-wrap">
+        <div class="page-sidebar">
+            <div class="logo-box"><a href="#" class="logo-text" style="color: #2B598F" onclick="logout()">התנתק</a><a href="#" id="sidebar-close"><i class="material-icons">close</i></a> <a href="#" id="sidebar-state"><i class="material-icons compact-sidebar-icon">panorama_fish_eye</i></a></div>
+            <div class="page-sidebar-inner slimscroll">
+                <ul class="accordion-menu">
+
+                    <li>
+                        <a style="font-size: 15px" class="logo-text" href="#" ><i class="material-icons-outlined">people_outline</i>תורים</a>
+                    </li>
+                    <br>
+
+
+                    <li>
+                        <a style="font-size: 15px; font-family: Lato,sans-serif"  href="#"><i class="material-icons">people_outline</i>עובדים</a>
+                    </li>
+                    <br>
+
+                    <li>
+                        <a style="font-size:15px" class="logo-text" href="#"><i class="material-icons-outlined">shopping_cart</i>מוצרים</a>
+                    </li>
+                    <br>
+
+                    <li>
+                        <a style="font-size:15px" class="logo-text" href="#"><i class="material-icons">format_color_fill</i>צבעי שיער</a>
+                    </li>
+                    <br>
+
+                    <li>
+                        <a style="font-size:15px" href="#"><i class="material-icons-outlined">volunteer_activism</i>טיפולי שיער</a>
+                    </li>
+                    <br>
+
+                    <li>
+                        <a href="#" style="font-size:20px"><i class="material-icons">text_format</i>פרטי מספרה<i class="material-icons has-sub-menu">add</i></a>
+                        <ul class="sub-menu">
+                            <li>
+                                <a style="font-family: Lato,sans-serif" href="#">לקוחות</a>
+                            </li>
+                            <li>
+                                <a style="font-family: Lato,sans-serif" href="#">חופשות עובדים</a>
+                            </li>
+                            <li>
+                                <a style="font-family: Lato,sans-serif" href="#">זמני פעילות</a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+        <div class="page-container">
+            <div class="page-header">
+                <div style="text-align:center" class="logo-box"><a style="font-size: 80px; color: #2B598F; font-family: Lato,sans-serif" class="logo-text">תורים</a></div>
+                <div style="text-align:center" class="logo-box"><a style="font-size: 40px; color: #2B598F; font-family: Lato,sans-serif" id="namee" class="logo-text"></a></div>
+            </div>
+            <div class="page-content">
+                <div class="page-info">
+                   
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a class="logo-text" href="#">מספרה</a></li>
+                            <li class="breadcrumb-item active" style="font-family: Lato,sans-serif" aria-current="page">תורים</li>
+                        </ol>
+                    </nav>
+                    <div class="page-options" style="text-align:right" id="emp">
+
+                    </div>
+                </div>
+                <div class="main-wrapper">
+                    <div class="row">
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div id='calendar'></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-footer">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="mod" style="direction:rtl">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mailbox-compose-overlay"></div>
+    <div class="mailbox-item-overlay"></div>
+
+    <div id="contextMenu" class="dropdown clearfix">
+        <ul class="my-dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:static;margin-bottom:5px;">
+            <li>
+                <a tabindex="-1" href="#" >מחק</a>
+            </li>
+            
+        </ul>
+    </div>
+    <!-- Javascripts -->
+    <script src="../../assets/plugins/jquery/jquery-3.4.1.min.js"></script>
+    <script src="../../assets/plugins/bootstrap/popper.min.js"></script>
+    <script src="../../assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../../assets/plugins/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="../../assets/plugins/fullcalendar/packages/core/main.min.js"></script>
+    <script src="../../assets/plugins/fullcalendar/packages/interaction//main.min.js"></script>
+    <script src="../../assets/plugins/fullcalendar/packages/daygrid/main.min.js"></script>
+    <script src="../../assets/plugins/fullcalendar/packages/timegrid/main.min.js"></script>
+    <script src="../../assets/plugins/fullcalendar/packages/bootstrap//main.min.js"></script>
+    <script src="../../assets/js/connect.min.js"></script>
+    <script src="../../assets/js/pages/calendar.js"></script>
+</body>
+</html>
